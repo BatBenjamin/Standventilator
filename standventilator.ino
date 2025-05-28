@@ -99,30 +99,16 @@ void loop() {
         autodreh = false;
       }
     } else if (irinput == "hier schneller button") {
-      
-    }
-    /*switch(strtol(value, NULL, 0)) {
-    case strtol("FFFFE5D8", NULL, 0): //An-Aus Toggle
-      if(active == 0) {
-        active = 1;
-        lcd.display();
-        
-      } else if(active == 1){
-        active = 0;
-        speed = 0;
-        ausrichtung = 90;
-        lcd.noDisplay;
-        
+      if (speed <= (255 - 85)) {
+        speed = speed + 85;
       }
-      break;
-    case strtol("22DD", NULL, 0): //drehe nach links
-      if(ausrichtung > 54) {
-         ausrichtung = ausrichtung - 9;
-       } else {
-          ausrichtung = 45;
-       }
-      
-  */
+      digitalWrite(ventilator, speed);
+    } else if (irinput == "hier langsamer button") {
+        else if (irinput >= 0 {
+          speed = speed + 85;
+        }
+        digitalWrite(ventilator, speed);
+    }
     
     if(autodreh == true) {
       if(drehrichtung == "l") {
@@ -145,46 +131,5 @@ void loop() {
     }
     
   }
-       // delay(500); // 200 ms Pause einfügen
 
 }
-
-
-/*#include <IRremote.h>
-#include <LiquidCrystal_I2C.h>
-
-const int ventilator = 5;
-const int rotator = 3;int ir = 7;
-IRrecv irrecv(ir);
-decode_results results;
-
-LiquidCrystal_I2C lcd (0x27, 16,2);
-void setup() {
-  // put your setup code here, to run once:
-  pinMode(ir, INPUT);
-  Serial.begin(9600);
-  lcd.init();
-  lcd.setCursor(0,0);
-  lcd.backlight();
-  irrecv.begin(ir);
-  pinMode(ventilator, OUTPUT);
-  pinMode(rotator, OUTPUT);
-  lcd.println("Whoop");
-  irrecv.enableIRIn();
-}
-
-void loop() {
-  // put your main code here, to run repeatedly:
-  if(irrecv.decode()) {
-    //Serial.print(irrecv.decode);
-    int key_value = results.value;
-    int reval = irrecv.decode();
-    Serial.println(key_value);
-    lcd.println(key_value, HEX);
-        irrecv.resume();
-
-    //results.value = ""; 
-  }
-     // irrecv.resume();
-  */
-//}
