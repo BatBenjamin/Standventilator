@@ -26,7 +26,7 @@ void loop() {
   Serial.print("Luftfeuchtigkeit (%): ");
   Serial.println(humidity, 2);
 
-  temperature -= 5; //kalibirert
+  temperature -= 2; //kalibirert
   Serial.print("Temperatur (°C): ");
   Serial.println(temperature, 2);
 
