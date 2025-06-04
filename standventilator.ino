@@ -1,4 +1,4 @@
-
+#include <DHT.h>
 #include <IRremote.h>
 #include <LiquidCrystal_I2C.h>
 #include <Servo.h>
@@ -7,6 +7,8 @@ Servo drehmotor;
 int irPin = 8; // Pin am Arduino UNO für den IR Receiver
 const int ventilator = 5;
 const int rotator = 3;
+const int dhtpin = 2;
+const String DHTTYPE = "DHT11";
 int ir = 8;
 int speed = 0;
 int active = 0;
@@ -15,6 +17,7 @@ int mindreh = 45;
 int maxdreh = 135;
 bool autodreh = false;
 char drehrichtung = "l";
+DHT dht(dhtpin, DHTTYPE);
 
 IRrecv irrecv(irPin); // Objekt initialisieren für die IR Übertragung
 
@@ -23,7 +26,7 @@ decode_results results;
 LiquidCrystal_I2C lcd (0x27, 16,2);
 
 
-void setup() {
+void setup() {                                   
 
   pinMode(irPin, INPUT);  // Den IR Pin als Eingang deklarieren.
 
@@ -36,6 +39,7 @@ void setup() {
   lcd.backlight();
   pinMode(ventilator, OUTPUT);
   pinMode(rotator, OUTPUT);
+  dht.begin();
   lcd.clear();
   lcd.print("Whoop");
   //lcd.noDisplay();
@@ -47,7 +51,13 @@ void setup() {
 
 void loop() {
     String irinput;
-
+    long time = millis();
+    if(time % 10000 == 0 || time < 10000) {
+      float feucht = dht.readHumidity();
+      float temperature = dht.readTemperature();
+      lcd.setCursor(0,1);
+      lcd.print(temperature "C," feucht "%");
+    }
   if (irrecv.decode(&results)) { // Wenn etwas gelesen wurde dann...
 
     // Ausgabe des Wertes auf die serielle Schnittstelle.
