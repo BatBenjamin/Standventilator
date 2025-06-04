@@ -1,4 +1,4 @@
-
+#include "DHT.h"
 #include <IRremote.h>
 #include <LiquidCrystal_I2C.h>
 #include <Servo.h>
@@ -11,10 +11,14 @@ int ir = 8;
 int speed = 0;
 int active = 0;
 int ausrichtung = 90;
-int mindreh = 45;
-int maxdreh = 135;
+int mindreh = 20;
+int maxdreh = 160;
 bool autodreh = false;
-char drehrichtung = "l";
+String drehrichtung = "l";
+#define DHTPIN 2        // Pin, an dem der DHT11 angeschlossen ist
+#define DHTTYPE DHT11   // DHT11 Sensor
+
+DHT dht(DHTPIN, DHTTYPE);  // DHT-Objekt erstellen
 
 IRrecv irrecv(irPin); // Objekt initialisieren für die IR Übertragung
 
@@ -23,7 +27,7 @@ decode_results results;
 LiquidCrystal_I2C lcd (0x27, 16,2);
 
 
-void setup() {
+void setup() {                                   
 
   pinMode(irPin, INPUT);  // Den IR Pin als Eingang deklarieren.
 
@@ -36,6 +40,7 @@ void setup() {
   lcd.backlight();
   pinMode(ventilator, OUTPUT);
   pinMode(rotator, OUTPUT);
+  dht.begin();
   lcd.clear();
   lcd.print("Whoop");
   //lcd.noDisplay();
@@ -47,7 +52,18 @@ void setup() {
 
 void loop() {
     String irinput;
-
+    long time = millis();
+    if(time % 10000 == 0 || time < 500) {
+      float feucht = dht.readHumidity();
+      float temperature = dht.readTemperature();
+      temperature = temperature - 2;
+      lcd.setCursor(0,1);
+      lcd.print(temperature, 2);
+      lcd.print("C, ");
+      lcd.print(feucht, 2);
+      lcd.print("%");
+      lcd.setCursor(0,0);
+    }
   if (irrecv.decode(&results)) { // Wenn etwas gelesen wurde dann...
 
     // Ausgabe des Wertes auf die serielle Schnittstelle.
@@ -79,57 +95,58 @@ void loop() {
         
       }
     } else if (irinput == "ff22dd") {
-      if(ausrichtung > 54) {
+      if(ausrichtung > (mindreh + 9)) {
          ausrichtung = ausrichtung - 9;
        } else {
-          ausrichtung = 45;
+          ausrichtung = mindreh;
        }
        drehmotor.write(ausrichtung);
+       autodreh = false;
     } else if (irinput == "ffc23d") {
-      if(ausrichtung < 126) {
+      if(ausrichtung < (maxdreh - 9)) {
         ausrichtung = ausrichtung + 10;
       } else {
-        ausrichtung = 135;
+        ausrichtung = maxdreh;
       }
       drehmotor.write(ausrichtung);
-    } else if (irinput == "hier play button") {
+      autodreh = false;
+    } else if (irinput == "ff02fd") {
       if(autodreh == false) {
-        autodreh = true;  
+        autodreh = true; 
       } else {
         autodreh = false;
       }
+      lcd.print(autodreh); 
+
     } else if (irinput == "hier schneller button") {
       if (speed <= (255 - 85)) {
         speed = speed + 85;
       }
       digitalWrite(ventilator, speed);
     } else if (irinput == "hier langsamer button") {
-        else if (irinput >= 0 {
-          speed = speed + 85;
+        if(speed >=85) {
+          speed = speed - 85;
         }
         digitalWrite(ventilator, speed);
     }
     
-    if(autodreh == true) {
-      if(drehrichtung == "l") {
+    
+    
+  }
+  if(autodreh == true & millis()%50 == 0) {
+      if(drehrichtung == "r") {
         if(ausrichtung > mindreh) {
           ausrichtung = ausrichtung -1;
-          drehmotor.write(ausrichtung);
         } else {
-          drehrichtung = "r";
+          drehrichtung = "l";
         }
-      } else if(drehrichtung == "r") {
-        if(drehrichtung == "r") {
+      } else if(drehrichtung == "l") {
           if(ausrichtung < maxdreh) {
             ausrichtung = ausrichtung + 1;
           } else {
-            drehrichtung = "l";
+            drehrichtung = "r";
           }
-        }
       }
-      
+      drehmotor.write(ausrichtung);
     }
-    
-  }
-
 }
